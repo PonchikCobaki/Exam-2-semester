@@ -13,7 +13,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "task 4", "task 4\task 4.vcx
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{487AF538-5591-4BA8-AD9E-5A641C354425}"
 	ProjectSection(SolutionItems) = preProject
-		..\tasks.png = ..\tasks.png
+		tasks.png = tasks.png
 	EndProjectSection
 EndProject
 Global
