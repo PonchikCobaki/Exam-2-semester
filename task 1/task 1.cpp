@@ -4,41 +4,39 @@
 
 using namespace std;
 
-using someFnc = double (*)(someFnc, findMaxFnc, int n, ...);
-using findMaxFnc = void (*)(double& max, int& num);
+using findMaxFnc = double (*)(double num);
+using someFnc = double (*)(const findMaxFnc& FindMax, double n, ...);
 
-double SomeFunction(someFnc SomeFunction, findMaxFnc FindMax, int n, ...);
-void FindMax(double& max, int& num);
-
-
-
-int sum(int n, ...)
-{
-    int result = 0;
-    // получаем указатель на параметр n
-    for (int* ptr = &n; n > 0; n--)
-    {
-        result += *(++ptr);
-    }
-    return result;
-}
+double FindMax(double num);
+double SomeFunction(const findMaxFnc& FindMax, double n, ...);;
 
 int main()
 {
-    cout << "sum number: " << sum(3, 1, 2, 3) << endl;
-    //cout << "max number: " << SomeFunction(SomeFunction, FindMax, 3, 1, 2, 3) << endl;
+    cout << "max number: " << SomeFunction(FindMax, 3, SomeFunction, 0.0042, 0.003) << endl;
 }
 
-double SomeFunction(someFnc SomeFunction, findMaxFnc FindMax, int n, ...) {
-    double max = -1e16;
-    for (int i = 0, int* ptr = &n; n > 0; n--, ++i) {
-        FindMax(max, *(ptr + i));
-    }
+double SomeFunction(const findMaxFnc& FindMax, double n, ...) {
+
+    double (*SomeFunction)(const findMaxFnc & FindMax, double n, ...);
+    va_list Arguments;
+    va_start(Arguments, n);
+    SomeFunction = va_arg(Arguments, someFnc);  // указатель функции на саму себя
+    --n;
+
+    double max(0);
+    // поск максимума
+    for (; n > 0; n--)
+        max = FindMax(va_arg(Arguments, double));
+    
+    va_end(Arguments);
     return max;
 }
 
-void FindMax(double& max, int& num) {
+double FindMax(double num) {
+    cout << "number: " << num << endl;
+    static double max = -1e16;
     if (num > max) {
         max = num;
     }
+    return max;
 }
