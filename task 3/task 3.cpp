@@ -18,8 +18,9 @@ void RandomData(std::vector<double>& data);
 void main(){
 	
 	//vector<double> data = { 8, 3, 4, 2, 5, 1, 1, 0, 7, 8, 55 };
-	vector<double> data;
-	RandomData(data);
+	vector<double> data = { 223.6,   49.78,   320.41,  155.2,   174.89, 264.16,  276.97 };
+	//vector<double> data;
+	//RandomData(data);
 	//WriteBinFile("rnd_data.bin", data);
 	//ReadBinFile("rnd_data.bin", data);
 	cout << "reading data" << endl;
@@ -35,6 +36,7 @@ void main(){
 
 	NaturalMergeSort(data, Merge);
 
+	std::cout << "\n";
 	for (double i : data) {
 		cout << i << "\t";
 
@@ -65,7 +67,7 @@ uint16_t Merge(std::vector<double>& data, vector<uint32_t>& subArrEnds, uint32_t
 	if (subArrEnds.size() > 1 && (pairNum * 2 <= subArrEnds.size() && subArrEnds.size() / 2 != 0)) {
 		int64_t l = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];	// левый и правый индексы концов подмассивов
 		int64_t lLen = int64_t(l) - prevInd, rLen = r - l;	// длинна левого и правого подмассива
-		int64_t i(0);
+		int64_t i(0), j(0);
 		for (uint32_t counter(prevInd + 1); counter < r; ++counter) {
 			if (lLen == rLen && lLen + counter - i > r) {
 				break;
@@ -99,6 +101,9 @@ uint16_t Merge(std::vector<double>& data, vector<uint32_t>& subArrEnds, uint32_t
 					data.erase(data.begin() + counter);
 				}
 			}
+			else if (data[counter] < data[lLen + counter - i] && (counter + 1) != (lLen + counter - i)) {
+					++i;
+				}
 		}
 
 		cout << "merge array: " << endl;
