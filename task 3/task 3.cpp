@@ -7,10 +7,10 @@
 
 using namespace std;
 
-using mergeFnc = void(*)(std::vector<double>& data, vector<uint32_t> subArrEnds, uint32_t pairNum);
+using mergeFnc = void(*)(std::vector<double>& data, vector<uint32_t> subArrEnds, uint32_t pairNum, uint32_t prevInd);
 
 void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge);
-void Merge(std::vector<double>& data, vector<uint32_t> subArrEnds, uint32_t pairNum);
+void Merge(std::vector<double>& data, vector<uint32_t> subArrEnds, uint32_t pairNum, uint32_t prevInd);
 void ReadBinFile(std::string dir, std::vector<double>& data);
 void WriteBinFile(std::string dir, std::vector<double>& data);
 void RandomData(std::vector<double>& data);
@@ -47,27 +47,24 @@ void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge) {
 		cout << i << " ";
 	}
 	cout << endl;
-	Merge(data, subArrEnds, 1);
+	Merge(data, subArrEnds, 1, 0);
 }
 
-void Merge(std::vector<double>& data, vector<uint32_t> subArrEnds, uint32_t pairNum) {
+void Merge(std::vector<double>& data, vector<uint32_t> subArrEnds, uint32_t pairNum, uint32_t prevInd) {
 	
 	if (subArrEnds.size() > 1 || pairNum * 2 - 1 < subArrEnds.size()) {
 		uint32_t l = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];
-		uint32_t lLen = l + 1;
-		uint32_t rLen = r - l;
 		
-		for (uint32_t couner(0), i(0), j(0); couner < r; ++couner) {
+		
+		for (uint32_t couner(prevInd + 1); couner < r - prevInd; ++couner) {
 			if (data[couner] > data[l + couner + 1]) {
 				data[l + couner + 1] -= data[couner];
 				data[couner] += data[l + couner + 1];
 				data[l + couner + 1] = data[couner] - data[l + couner + 1];
-				++j;
 			}
 			else if (data[couner] = data[l + couner + 1]) {
 				data.insert(data.begin() + couner, data[l + couner + 1]);
 				data.erase(data.begin() + l + couner + 1);
-				++i;
 			}
 		}
 
@@ -78,9 +75,9 @@ void Merge(std::vector<double>& data, vector<uint32_t> subArrEnds, uint32_t pair
 		cout << endl;
 
 
-		Merge(data, subArrEnds, pairNum + 1);
+		Merge(data, subArrEnds, pairNum + 1, r);
 		subArrEnds.erase(subArrEnds.begin() + pairNum - 1);
-		Merge(data, subArrEnds, pairNum + 1);
+		Merge(data, subArrEnds, pairNum + 1, r);
 	}
 
 
