@@ -7,23 +7,28 @@
 
 using namespace std;
 
-using mergeFnc = uint16_t(*)(std::vector<double>& data, vector<uint32_t>& subArrEnds, uint32_t pairNum, int64_t prevInd);
+using mergeFnc = void(*)(std::vector<double>& data, int l, int m, int r);
+using arrayWalkintFnc = int(*)(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r);
 
-void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge);
-uint16_t Merge(std::vector<double>& data, vector<uint32_t>& subArrEnds, uint32_t pairNum, int64_t prevInd);
+void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge, arrayWalkintFnc ArrayWalk, uint32_t l, uint32_t r);
+int ArrayWalk(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r);
+void Merge(std::vector<double>& data, int l, int m, int r);
+
 void ReadBinFile(std::string dir, std::vector<double>& data);
 void WriteBinFile(std::string dir, std::vector<double>& data);
 void RandomData(std::vector<double>& data);
 
-void main(){
-	
-	//vector<double> data = { 8, 3, 4, 2, 5, 1, 1, 0, 7, 8, 55 };
-	//vector<double> data = { 223.6,   49.78,   320.41,  155.2,   174.89, 264.16,  276.97 };
+void main() {
+	string dir = "rnd_data.bin";
+	cout << "enter the file directory" << endl;
+	getline(cin, dir);
+
 	vector<double> data;
-	RandomData(data);
-	//WriteBinFile("rnd_data.bin", data);
-	//ReadBinFile("rnd_data.bin", data);
-	//cout << "reading data" << endl;
+	//RandomData(data);
+
+
+	ReadBinFile(dir, data);
+	cout << "reading data" << endl;
 	uint32_t count(0);
 	for (double i : data) {
 		cout << i << "\t";
@@ -34,9 +39,11 @@ void main(){
 		++count;
 	}
 
-	NaturalMergeSort(data, Merge);
+	NaturalMergeSort(data, Merge, ArrayWalk, 0, data.size() - 1);
+
 	count = 0;
 	std::cout << "\n";
+	cout << "sorted data" << endl;
 	for (double i : data) {
 		cout << i << "\t";
 
@@ -45,99 +52,118 @@ void main(){
 			std::cout << "\n";
 		++count;
 	}
+	WriteBinFile(dir, data);
 }
 
-void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge) {
-	vector<uint32_t> subArrEnds;	// массив индексов конца подмассивов
-	for (uint32_t i = 0; i < (data.size() -  1); ++i) {
-		if (data[i] > data[i + 1]) {
-			subArrEnds.push_back(i);
-		}
+// основная функция сортировки
+void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge, arrayWalkintFnc ArrayWalk, uint32_t l, uint32_t r) {
+
+	uint32_t depth(0), prevDepth(0);	// количество слияний
+
+	depth = ArrayWalk(data, Merge, l, r);
+
+	while (depth != prevDepth) {
+		prevDepth = depth;
+		depth = ArrayWalk(data, Merge, l, r);
 	}
-	subArrEnds.push_back(data.size() - 1);	// последний подмассив
-	for (auto i : subArrEnds) {
-		cout << i << " ";
-	}
-	cout << endl;
-	Merge(data, subArrEnds, 1, -1);
 }
 
-uint16_t Merge(std::vector<double>& data, vector<uint32_t>& subArrEnds, uint32_t pairNum, int64_t prevInd) {
+// функция прохода по массиву и слияния двух соседних подмассивов
+int ArrayWalk(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r) {
+	int64_t m(0), rCur(0), depth(0);
 
-	if (subArrEnds.size() > 1 && (pairNum * 2 <= subArrEnds.size() && subArrEnds.size() / 2 != 0)) {
-		int64_t l = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];	// левый и правый индексы концов подмассивов
-		int64_t lLen = int64_t(l) - prevInd, rLen = r - l;	// длинна левого и правого подмассива
-		int64_t i(0), j(1);
-		for (uint32_t counter(prevInd + 1); counter < r; ++counter) {
-			if (lLen == rLen && lLen + counter - i > r) {
-				break;
+	// поиск подмассива массива 
+	while (l < r && rCur < r && depth <= 0) {
+		depth = 0;
+		int counter(0);
+		for (uint32_t i = l; i < r && counter != 2; ++i) {
+			if (data[i] > data[i + 1]) {
+				if (!counter) {
+					m = i;
+					++counter;
+				}
+				else {
+					rCur = i;
+					++counter;
+				}
 			}
-			else if ((lLen > rLen && counter > l)) {
-				break;
-			}
-			else if (lLen < rLen && counter == r) {
-				break;
+			else if (i + 1 == r) {
+				rCur = r;
+				++counter;
 			}
 
-			if (counter > l && lLen > 1) {
-				counter += lLen - 1 - (j - 1);
-			}
-			if (int64_t(lLen) + int64_t(counter) - i - 1 >= r) {
-				i += lLen + counter - i - r;
-			}
-
-			if (data[counter] > data[lLen + counter - i]) {
-				data[lLen + counter - i] -= data[counter];
-				data[counter] += data[lLen + counter - i];
-				data[lLen + counter - i] = data[counter] - data[lLen + counter - i];
-				if (lLen < rLen && counter <= l) {
-					++j;
-				}
-			}
-			else if (data[counter] == data[lLen + counter - i] && (counter + 1) != (lLen + counter - i)) {
-				if (data[lLen + counter - i - 1] > data[lLen + counter - i]) {
-					data.insert(data.begin() + counter, data[lLen + counter - i]);
-					data.erase(data.begin() + (lLen + counter - i));
-				}
-				else if (data[lLen + counter - i - 1] < data[lLen + counter - i]) {
-					data.insert(data.begin() + (lLen + counter - i), data[counter]);
-					data.erase(data.begin() + counter);
-				}
-			}
-			else if (data[counter] < data[lLen + counter - i] && (counter + 1) != (lLen + counter - i)) {
-					++i;
-				}
 		}
 
-		cout << "merge array: " << endl;
-		for (auto i : data) {
-			cout << i << " ";
+		// дальнейшее слияние или выход
+		if (l <= m) {
+			Merge(data, l, m, rCur);
+			l = rCur + 1;
+			m = 0;
+			depth = ArrayWalk(data, Merge, l, r);
+			return depth + 1;
 		}
-		cout << endl;
+		else if (rCur == data.size() - 1) {
+			break;
+		}
+		else {
+			break;
+		}
 
-		uint16_t flag(false);
-		while (subArrEnds.size() > 1) {
-			flag = Merge(data, subArrEnds, pairNum + 1, r);
-			if (subArrEnds.size() > 1) {
-				subArrEnds.erase(subArrEnds.begin() + pairNum * 2 - 2);
-			}
-			if (flag){
-				flag = false;
-				if (pairNum != 1) {
-					return 1;
-				}
-				pairNum = 0;
-				r = -1;
-				
-			}
-		}
 	}
 
-	return 1;
 
 }
 
+// функция слияния двух массивов
+void Merge(std::vector<double>& data, int l, int m, int r)
+{
+	int i, j, k;
+	int n1 = m - l + 1;
+	int n2 = r - m;
 
+	// создание буфферов
+	vector<double> L, R;
+	L.resize(n1);
+	R.resize(n2);
+	// коппирование данных в буферы
+	for (i = 0; i < n1; i++)
+		L[i] = data[l + i];
+	for (j = 0; j < n2; j++)
+		R[j] = data[m + 1 + j];
+
+	// слияние подмассивов в основнойы
+	i = 0; // индекс для первого подмассива
+	j = 0; // индекс для второго подмасиива
+	k = l; // индекс для итогового массива
+	while (i < n1 && j < n2) {
+		if (L[i] <= R[j]) {
+			data[k] = L[i];
+			i++;
+		}
+		else {
+			data[k] = R[j];
+			j++;
+		}
+		k++;
+	}
+
+	// дальнейшее копирование на случай если первый и второй подмассив разной длинны
+	while (i < n1) {
+		data[k] = L[i];
+		i++;
+		k++;
+	}
+
+
+	while (j < n2) {
+		data[k] = R[j];
+		j++;
+		k++;
+	}
+}
+
+
+//	чтение бинарного файла
 void ReadBinFile(std::string dir, std::vector<double>& data) {
 
 	ifstream inBinFile(dir, ios::binary);
@@ -146,7 +172,7 @@ void ReadBinFile(std::string dir, std::vector<double>& data) {
 		system("pause");
 	}
 
-	uint32_t dataCount = inBinFile.seekg(0, ios::end).tellg() /	sizeof(double);
+	uint32_t dataCount = inBinFile.seekg(0, ios::end).tellg() / sizeof(double);
 	inBinFile.seekg(0, ios::beg);
 	double buffer;
 	data.clear();
@@ -161,6 +187,7 @@ void ReadBinFile(std::string dir, std::vector<double>& data) {
 
 }
 
+//	запись в бинарный файл
 void WriteBinFile(std::string dir, std::vector<double>& data) {
 
 	ofstream outBinFile(dir, ios::binary);
@@ -178,13 +205,14 @@ void WriteBinFile(std::string dir, std::vector<double>& data) {
 
 }
 
+//	генератор данных
 void RandomData(std::vector<double>& data) {
 	srand(static_cast<unsigned int>(time(0)));
 	uint32_t n;
 	cin >> n;
 	for (int count = 0; count < n; ++count)
 	{
-		double val = rand() % 101;
+		double val = rand() / 100.;
 		data.push_back(val);
 		std::cout << val << "\t";
 
