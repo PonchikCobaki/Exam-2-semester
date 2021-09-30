@@ -20,11 +20,11 @@ void RandomData(std::vector<double>& data);
 
 void main() {
 
-	vector<double> data = { 8, 3, 4, 2, 5, 1, 1, 0, 7, 8, 55 };
+	//vector<double> data = { 8, 3, 4, 2, 5, 1, 1, 0, 7, 8, 55 };
 	//vector<double> data = { 223.6,   49.78,   320.41,  155.2,   174.89, 264.16,  276.97 };
 	//vector<double> data = { 47,      41,      33,      62,      45,	0,       39,      50 };
-	//vector<double> data;
-	//RandomData(data);
+	vector<double> data;
+	RandomData(data);
 	//WriteBinFile("rnd_data.bin", data);
 	//ReadBinFile("rnd_data.bin", data);
 	//cout << "reading data" << endl;
@@ -53,12 +53,14 @@ void main() {
 
 void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge, arrayWalkintFnc ArrayWalk, uint32_t l, uint32_t r) {
 
-	uint32_t depth;
+	uint32_t depth(0), prevDepth(0);
 
 	depth = ArrayWalk(data, Merge, l, r);
 	
-	while (depth > 3) {
+	while (depth != prevDepth) {
+		prevDepth = depth;
 		depth = ArrayWalk(data, Merge, l, r);
+		cout << "depth: " << depth << endl;
 	}
 }
 
@@ -97,17 +99,23 @@ int ArrayWalk(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r)
 			}
 
 		}
-		if (m >= l) {
+
+		if (l <= m ) {
 			Merge(data, l, m, rCur);
 			l = rCur + 1;
 			m = 0;
 			depth = ArrayWalk(data, Merge, l, r);
+			return depth + 1;
+		}
+		else if (rCur == data.size() - 1){
+			break;
 		}
 		else {
 			break;
 		}
+		
 	}
-	return depth + 1;
+
 	
 	//uint32_t pairNum(1);
 	//int64_t l(0), m = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];
@@ -238,7 +246,7 @@ void RandomData(std::vector<double>& data) {
 	cin >> n;
 	for (int count = 0; count < n; ++count)
 	{
-		double val = rand() % 101;
+		double val = rand() / 100.;
 		data.push_back(val);
 		std::cout << val << "\t";
 
