@@ -8,20 +8,23 @@
 using namespace std;
 
 using mergeFnc = void(*)(std::vector<double>& data, int l, int m, int r);
+using arrayWalkintFnc = int(*)(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r);
 
-void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge);
+void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge, arrayWalkintFnc ArrayWalk, uint32_t l, uint32_t r);
+int ArrayWalk(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r);
 void Merge(std::vector<double>& data, int l, int m, int r);
+
 void ReadBinFile(std::string dir, std::vector<double>& data);
 void WriteBinFile(std::string dir, std::vector<double>& data);
 void RandomData(std::vector<double>& data);
 
 void main() {
 
-	//vector<double> data = { 8, 3, 4, 2, 5, 1, 1, 0, 7, 8, 55 };
+	vector<double> data = { 8, 3, 4, 2, 5, 1, 1, 0, 7, 8, 55 };
 	//vector<double> data = { 223.6,   49.78,   320.41,  155.2,   174.89, 264.16,  276.97 };
-	//vector<double> data = { 90,      75,     100,     28,      36 };
-	vector<double> data;
-	RandomData(data);
+	//vector<double> data = { 47,      41,      33,      62,      45,	0,       39,      50 };
+	//vector<double> data;
+	//RandomData(data);
 	//WriteBinFile("rnd_data.bin", data);
 	//ReadBinFile("rnd_data.bin", data);
 	//cout << "reading data" << endl;
@@ -35,7 +38,7 @@ void main() {
 	//	++count;
 	//}
 
-	NaturalMergeSort(data, Merge);
+	NaturalMergeSort(data, Merge, ArrayWalk, 0, data.size() - 1);
 	count = 0;
 	std::cout << "\n";
 	for (double i : data) {
@@ -48,43 +51,89 @@ void main() {
 	}
 }
 
-void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge) {
-	vector<uint32_t> subArrEnds;	// массив индексов конца подмассивов
-	for (uint32_t i = 0; i < (data.size() - 1); ++i) {
-		if (data[i] > data[i + 1]) {
-			subArrEnds.push_back(i);
-		}
-	}
-	subArrEnds.push_back(data.size() - 1);	// последний подмассив
-	for (auto i : subArrEnds) {
-		cout << i << " ";
-	}
-	cout << endl;
+void NaturalMergeSort(std::vector<double>& data, mergeFnc Merge, arrayWalkintFnc ArrayWalk, uint32_t l, uint32_t r) {
 
-	uint32_t pairNum(1);
-	int64_t l(0), m = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];
-	while (subArrEnds.size() > 1) {
-		Merge(data, l, m, r);
-		if (pairNum * 2 + 1 >= subArrEnds.size()) {
-			int delCount = subArrEnds.size() / 2;
-			for (int i(0); i < delCount; i += 2) {
-				subArrEnds.erase(subArrEnds.begin() + pairNum * 2 - 2);
-				--i;
+	uint32_t depth;
+
+	depth = ArrayWalk(data, Merge, l, r);
+	
+	while (depth > 3) {
+		depth = ArrayWalk(data, Merge, l, r);
+	}
+}
+
+int ArrayWalk(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r) {
+	//vector<uint32_t> subArrEnds;	// массив индексов конца подмассивов
+//for (uint32_t i = 0; i < (data.size() - 1); ++i) {
+//	if (data[i] > data[i + 1]) {
+//		subArrEnds.push_back(i);
+//	}
+//}
+//subArrEnds.push_back(data.size() - 1);	// последний подмассив
+//for (auto i : subArrEnds) {
+//	cout << i << " ";
+//}
+//cout << endl;
+
+	int64_t m(0), rCur(0), depth(0);
+
+	while (l < r && rCur < r && depth <= 0) {
+		depth = 0;
+		int counter(0);
+		for (uint32_t i = l; i < r && counter != 2; ++i) {
+			if (data[i] > data[i + 1]) {
+				if (!counter) {
+					m = i;
+					++counter;
+				}
+				else {
+					rCur = i;
+					++counter;
+				}
 			}
-			pairNum = 0;
+			else if (i + 1 == r) {
+				rCur = r;
+				++counter;
+			}
+
 		}
-			
-		++pairNum;
-		if (pairNum == 1) {
-			l = 0;
+		if (m >= l) {
+			Merge(data, l, m, rCur);
+			l = rCur + 1;
+			m = 0;
+			depth = ArrayWalk(data, Merge, l, r);
 		}
 		else {
-			l = r;
-		}
-		if (subArrEnds.size() > 1){
-			m = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];
+			break;
 		}
 	}
+	return depth + 1;
+	
+	//uint32_t pairNum(1);
+	//int64_t l(0), m = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];
+	//while (subArrEnds.size() > 1) {
+	//	Merge(data, l, m, r);
+	//	if (pairNum * 2 + 1 >= subArrEnds.size()) {
+	//		int delCount = subArrEnds.size() / 2;
+	//		for (int i(0); i < delCount; i += 2) {
+	//			subArrEnds.erase(subArrEnds.begin() + pairNum * 2 - 2);
+	//			--i;
+	//		}
+	//		pairNum = 0;
+	//	}
+	//		
+	//	++pairNum;
+	//	if (pairNum == 1) {
+	//		l = 0;
+	//	}
+	//	else {
+	//		l = r;
+	//	}
+	//	if (subArrEnds.size() > 1){
+	//		m = subArrEnds[pairNum * 2 - 2], r = subArrEnds[pairNum * 2 - 1];
+	//	}
+	//}
+
 }
 
 void Merge(std::vector<double>& data, int l, int m, int r)
