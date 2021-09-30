@@ -4,11 +4,11 @@
 using namespace std;
 
 // указатели на функции
-using findMaxFnc = double (*)(double num);
+using findMaxFnc = void (*)(const double& num, double& max);
 using someFnc = double (*)(const findMaxFnc& FindMax, double n, ...);
 
 // прототипы функциий
-double FindMax(double num);
+void FindMax(const double& num, double& max);
 double SomeFunction(const findMaxFnc& FindMax, double n, ...);;
 
 int main()
@@ -25,20 +25,18 @@ double SomeFunction(const findMaxFnc& FindMax, double n, ...) {
     SomeFunctionPtr = va_arg(Arguments, someFnc);  // указатель функции на саму себя
     --n;
 
-    double max(0);
+    double max = -1e16;
     // поск максимума
     for (; n > 0; n--)
-        max = FindMax(va_arg(Arguments, double));
+       FindMax(va_arg(Arguments, double), max);
     
     va_end(Arguments);
 
     return max;
 }
 
-double FindMax(double num) {
-    static double max = -1e16;
+void FindMax(const double& num, double& max) {
     if (num > max) {
         max = num;
     }
-    return max;
 }

@@ -8,7 +8,7 @@ using namespace std;
 
 char* ftoa(const float& n)
 {
-    char* charStr = new char[16];
+    char* charStr = new char[17];
 
     // защита от исключений
     if (isnan(n)) {
@@ -26,13 +26,13 @@ char* ftoa(const float& n)
 
     float number = n;   // копия числа, которая будет изменяться
     bool negative(false);   // флаг для отрицаткельного числа
-    int i = (negative ? 1 : 0); // щетчик
     // случай с отрицательным числом;
     if (n < 0) {
         negative = true;
         number = -number;
         *(charStr) = '-';
     }
+    int i = (negative ? 1 : 0); // щетчик
     int exp = log10(number);    // максимальная разряд числа
 
     if (exp < 1.0) {    // проверка для чисел с плавающей запятой
@@ -68,7 +68,7 @@ char* ftoa(const float& n)
 int main(int argc, char** argv) {
 
 
-    char* stringOfDigit = new char[16];
+    char* stringOfDigit = new char[17];
     float number = 100;
     stringOfDigit = ftoa(number);
     cout << "number: " << number << " | " << "string: " << stringOfDigit << endl;
