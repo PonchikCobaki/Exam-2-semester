@@ -20,24 +20,24 @@ void RandomData(std::vector<double>& data);
 
 void main() {
 	string dir = "rnd_data.bin";
-	cout << "enter the file directory" << endl;
-	getline(cin, dir);
+	/*cout << "enter the file directory" << endl;
+	getline(cin, dir);*/
 
 	vector<double> data;
-	//RandomData(data);
+	RandomData(data);
 
 
-	ReadBinFile(dir, data);
-	cout << "reading data" << endl;
+	//ReadBinFile(dir, data);
+	//cout << "reading data" << endl;
 	uint32_t count(0);
-	for (double i : data) {
-		cout << i << "\t";
+	//for (double i : data) {
+	//	cout << i << "\t";
 
-		// Если вывели 5 чисел, то вставляем символ новой строки
-		if ((count + 1) % 5 == 0)
-			std::cout << "\n";
-		++count;
-	}
+	//	// Если вывели 5 чисел, то вставляем символ новой строки
+	//	if ((count + 1) % 5 == 0)
+	//		std::cout << "\n";
+	//	++count;
+	//}
 
 	NaturalMergeSort(data, Merge, ArrayWalk, 0, data.size() - 1);
 
@@ -93,7 +93,10 @@ int ArrayWalk(std::vector<double>& data, mergeFnc Merge, uint32_t l, uint32_t r)
 			}
 
 		}
-
+		cout << "\ndata: ";
+		for (double i : data) {
+			cout << i << "\t";
+		}
 		// дальнейшее слияние или выход
 		if (l <= m) {
 			Merge(data, l, m, rCur);
@@ -212,7 +215,7 @@ void RandomData(std::vector<double>& data) {
 	cin >> n;
 	for (int count = 0; count < n; ++count)
 	{
-		double val = rand() / 100.;
+		double val = rand() / 100;
 		data.push_back(val);
 		std::cout << val << "\t";
 
